@@ -6,6 +6,8 @@ import sys
 import linkedlist
 import block_chain
 
+DEBUG = False # Set to true for verbosity of main
+
 '''
 Arguments:
     add
@@ -27,53 +29,33 @@ Arguments:
 def main():
     # Initialize our parser
     parser = argparse.ArgumentParser(description='Block-Chain of Custody Python Implementation')
-    
-    '''
-    # Define our positional arguments (Defined as: <command>, use args, default state, type of arg, help statement)
-    parser.add_argument('add', nargs='?',action='store', default=False, type=bool, help='Add a new evidence item to the blockchain and associate it with the given case identifier')
-    parser.add_argument('checkout', nargs='?', default=False, type=bool, help='Add a new checkout entry to the chain of custody for the given evidence item')
-    parser.add_argument('checkin', nargs='?', default=False, type=bool, help='Add a new checkin entry to the chain of custody for the given evidence item')
-    parser.add_argument('log', nargs='?', default=False, type=bool, help='Display the blockchain entries giving the oldest first (unless -r is given)')
-    parser.add_argument('remove', nargs='?', default=False, type=bool, help='Prevents any further action from being taken on the evidence item specified')
-    parser.add_argument('init', nargs='?', default=False, type=bool, help='Sanity check. Only starts up and checks for the initial block')
-    parser.add_argument('verify', nargs='?', default=False, type=bool, help='Parse the blockchain and validate all entries')
-    
-    # Define our optional arguments
-    parser.add_argument('-c', type=str, nargs=1, help='Specifies the case identifier that the evidence is associated with', required=False)
-    parser.add_argument('-i', type=int, help='Specifies the evidence item’s identifier', required=False)
-    parser.add_argument('-n', type=int, help='When used with log, shows num_entries number of block entries', required=False)
-    parser.add_argument('-y', '--why', type=str, help='Reason for the removal of the evidence item', required=False)
-    parser.add_argument('-r', '--reverse', type=bool, help="Reverses the order of the block entries to show the most recent entries first", required=False)
-    parser.add_argument('-o', type=str, help='Information about the lawful owner to whom the evidence was released', required=False)
-    '''
-    
     subparsers =parser.add_subparsers(help='sub-command help')
 
     parser_add=subparsers.add_parser('add',help='Add a new evidence item to the blockchain and associate it with the given case identifier')
-    parser_add.add_argument('-c', type=str, nargs=1,metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=True)
+    parser_add.add_argument('-c', type=str, metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=True)
     parser_add.add_argument('-i', type=int, action='append', metavar='ITEM_ID [-i ITEM_ID ...]',help='Specifies the evidence item’s identifier', required=True)
     parser_add.set_defaults(which='add')
 
     parser_checkout=subparsers.add_parser('checkout',help='Add a new evidence item to the blockchain and associate it with the given case identifier')
-    parser_checkout.add_argument('-c', type=str, nargs=1,metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=True)
+    parser_checkout.add_argument('-c', type=str, metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=True)
     parser_checkout.set_defaults(which='checkout')
 
     parser_checkin=subparsers.add_parser('checkin',help='Add a new checkin entry to the chain of custody for the given evidence item')
-    parser_checkin.add_argument('-c', type=str, nargs=1,metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=True)
+    parser_checkin.add_argument('-c', type=str,metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=True)
     parser_checkin.set_defaults(which='checkin')
 
     parser_log=subparsers.add_parser('log',help='Display the blockchain entries giving the oldest first (unless -r is given)')
     parser_log.add_argument('-r', '--reverse', type=bool, help="Reverses the order of the block entries to show the most recent entries first", required=False)
     parser_log.add_argument('-n', type=int, help='When used with log, shows num_entries number of block entries', required=False)
-    parser_log.add_argument('-c', type=str, nargs=1,metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=False)
+    parser_log.add_argument('-c', type=str, metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=False)
     parser_log.add_argument('-i', type=int, nargs=1,action='store', metavar='ITEM_ID',help='Specifies the evidence item’s identifier', required=False)
     parser_log.set_defaults(which='log')
 
 
-    parser_remove=subparsers.add_parser('remove',help='Display the blockchain entries giving the oldest first (unless -r is given)')
+    parser_remove=subparsers.add_parser('remove',help='Prevents any further action from being taken on the evidence item specified')
     parser_remove.add_argument('-i', type=int, nargs=1,action='store', metavar='ITEM_ID',help='Specifies the evidence item’s identifier', required=True)
     parser_remove.add_argument('-y', '--why', type=str, help='Reason for the removal of the evidence item', required=True)
-    parser_remove.add_argument('-o', type=str, help='Information about the lawful owner to whom the evidence was released', required=False)
+    parser_remove.add_argument('-o', type=str,metavar='Owner', help='Information about the lawful owner to whom the evidence was released', required=False)
     parser_remove.set_defaults(which='remove')
 
     parser_init=subparsers.add_parser('init', help='Sanity check. Only starts up and checks for the initial block')
@@ -85,56 +67,41 @@ def main():
 
     # Parse the arguments passed to the program
     args = parser.parse_args()
-    #add_args = parser_add.parse_args()
-    print(args)
-
-    option = args.which
-
-
-
-    '''
-    A more verbose method of doing variable assignment
-    while we could just do so in the argument parsing.
-    '''
-    # [Bool] vars, positional args
-    '''
-    checkout = args.checkout
-    checkin = args.checkin
-    remove = args.remove
-    verify = args.verify
-    init = args.init
+    if DEBUG:
+        print(args)
     
-    add_args = args.add
-    log = args.log
-    
-    # Actual value variables, optional args
-    num_entries = args.n        # int
-    case_id = args.c            # String, need to conv to UUID
-    item_id = args.i            # int
-    reverse = args.reverse      # bool, usually paired with n?
-    reason = args.why           # str
-    owner = args.o              # str
-    '''
-    if option=='checkout':
-        print('action chosen was checkout')
-        item_id = args.i            # int
+    # Check if we have args, if not then show help and exit
+    try:
+        option = args.which
+    except AttributeError:
+        parser.print_help()
+        sys.exit(0)
+
+    # Begin our case statements
+    if option == 'checkout':
+        if DEBUG:
+            print('action chosen was checkout')
+        case_id = args.c            # String
+        print(type(case_id))
         '''
         requires:
         
         returns:
             
         '''
-    elif option=='checkin':
-        print('action chosen was checkin')
-        item_id = args.i            # int
+    elif option == 'checkin':
+        if DEBUG:
+            print('action chosen was checkin')
+        case_id = args.c            # String
         '''
         requires:
         
         returns:
             
         '''
-    elif option=='remove':
-        print('action chosen was remove')
+    elif option == 'remove':
+        if DEBUG:
+            print('action chosen was remove')
         item_id = args.i            # int
         reason = args.why           # str
         try:
@@ -147,15 +114,16 @@ def main():
         returns:
             
         '''
-    elif option=='verify':
-        print('action chosen was verify')
+    elif option == 'verify':
+        if DEBUG:
+            print('action chosen was verify')
         '''
         requires:
         
         returns:
             
         '''
-    elif option=='init':
+    elif option == 'init':
         print('action chosen was init')
         '''
         requires:
@@ -163,8 +131,9 @@ def main():
         returns:
             
         '''
-    elif option=='add':
-        print('action chosen was add')
+    elif option == 'add':
+        if DEBUG:
+            print('action chosen was add')
         #please remember that this is the only option where ITEM_ID can be represented as a list, rather than just an int
         case_id = args.c            # String, need to conv to UUID
         item_id = args.i            # int or List
@@ -174,8 +143,9 @@ def main():
         returns:
             
         '''
-    elif option=='log':
-        print('action chosen was log')
+    elif option == 'log':
+        if DEBUG:
+            print('action chosen was log')
         #the arguments for log are all optional, use TRY to see if theyre given.
         try:
             num_entries = args.n        # int
