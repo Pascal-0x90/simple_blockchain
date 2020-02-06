@@ -89,6 +89,7 @@ class doubly_linked_list:
         while temp != None:
             print(temp.block)
             temp = temp.last_node
+            
 
 
     
