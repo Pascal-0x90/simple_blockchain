@@ -89,7 +89,15 @@ class doubly_linked_list:
         while temp != None:
             print(temp.block)
             temp = temp.last_node
-            
+    
+    def list(self):
+        # This will return a list of all data objects
+        listing = []
+        temp = self.head
+        while temp != None:
+            listing.append(temp.get_block)
+            temp = temp.next_node
+        return listing
 
 
     

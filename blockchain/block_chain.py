@@ -2,6 +2,9 @@
 
 import uuid
 import os
+import sys
+import time
+import struct
 import linkedlist
 
 '''
@@ -38,10 +41,12 @@ class block:
         
     def set_timestamp(self):
         # This will set timestamp based on current time
-        # TODO: Self set timestamp
-        pass
+        self.timestamp = int(time.time())
         
     def set_case_id(self, case_id): # Case id is still a string at this point
+        if case_id is None:
+            self.case_id = None
+            return 0
         uid = uuid.UUID(case_id)
         self.case_id = uid
     
@@ -83,8 +88,12 @@ class block:
 This is the blockchain which is a linked list of the blocks
 from the block class definition above. 
 '''
+# Global Struct object
+s = struct.Struct("20s d 16s I 11s I")
+
 # TODO: import blockchain from file
 class blockchain:
+    # blockchain()
     def __init__(self, blockchain_location=None, dll=linkedlist.doubly_linked_list()):
         self.dll = dll
         self.blockchain_location = blockchain_location
@@ -95,6 +104,9 @@ class blockchain:
         
     def get_recent(self):
         return self.dll.tail
+    
+    def get_list(self):
+        return self.dll.list
     
     def get_size(self):
         return self.dll.get_size()
@@ -115,7 +127,48 @@ class blockchain:
             else:
                 temp = temp.next_node
         return block()
-
+    
+    def export_bc(self, file_path):
+        blocks = self.get_list()
+        fp = open(file_path, "wb")
+        for i in blocks:
+            fp.write() # Some sort of writing encoding
+        
+    def import_bc(self, file_path):
+        # If cant find file, throw err
+        pass
+        
+    
+    # Checks for initial block
+    def init(self):
+        # Grab our filepath
+        file_path = os.environ['BCHOC_FILE_PATH']
+        
+        # Import blockchain
+        try:
+            bc = import_bc(file_path)
+            
+        except:
+            # Make new blockchain
+            bc = blockchain()
+            
+            # File didnt exit or no iniitiial block, we must make our own
+            new_block = block()
+            new_block.set_timestamp()
+            new_block.set_prev_hash(None)
+            new_block.set_case_id(None)
+            new_block.set_evidence_id(None)
+            new_block.set_state("Initial")
+            new_block.set_data_length(14)
+            new_block.set_data("Initial Block")
+            bc.add_block(new_block)
+            
+            # Write to file
+            err = export_bc(file_path)
+            if err:
+                print("Error writing to file")
+                sys.exit(1)
+            
 # Define our library methods
 
 '''
