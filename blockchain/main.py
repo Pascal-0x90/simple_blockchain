@@ -77,6 +77,9 @@ def main():
         parser.print_help()
         sys.exit(0)
 
+    #get the blockchain object
+    bc_obj = block_chain.blockchain()
+
     # Begin our case statements
     if option == 'checkout':
         if DEBUG:
@@ -125,12 +128,10 @@ def main():
         '''
     elif option == 'init':
         print('action chosen was init')
-        '''
-        requires:
+        #call the init funciton
+        bc_obj.init()
         
-        returns:
-            
-        '''
+
     elif option == 'add':
         if DEBUG:
             print('action chosen was add')

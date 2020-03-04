@@ -11,7 +11,7 @@ easier to go from tail to head instead of iterate
 head to tail then output that after we know what 
 is in the linked list.
 '''
-
+debug = False
 # Define the node object
 class node:
     def __init__(self, block=None, next_node=None, last_node=None):
@@ -46,7 +46,8 @@ class doubly_linked_list:
     def insert(self, block, index=None):
         # At the end
         if index is None:
-            print(True)
+            if debug:
+                print('true')
             temp = node(block)
             if self.head is None and self.tail is None:
                 self.head = temp
@@ -95,7 +96,7 @@ class doubly_linked_list:
         listing = []
         temp = self.head
         while temp != None:
-            listing.append(temp.get_block)
+            listing.append(temp.get_block())
             temp = temp.next_node
         return listing
 
