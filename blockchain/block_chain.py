@@ -44,6 +44,9 @@ class block:
     def set_timestamp(self):
         # This will set timestamp based on current time
         self.timestamp = int(time.time())
+
+    def set_old_timestamp(self, data):
+        self.timestamp = int(data)
         
     def set_case_id(self, case_id): # Case id is still a string at this point
         if case_id is None:
@@ -128,7 +131,7 @@ class blockchain:
                 return temp.block
             else:
                 temp = temp.next_node
-        return block()
+        return None
     
     def export_bc(self):
         blocks = self.get_list()
@@ -172,21 +175,63 @@ class blockchain:
     def import_bc(self):
         # If cant find file, throw err
         f = open(self.file_path, "rb")
+        #get the sizes for the format
         
-        '''
+        section_size= struct.calcsize("20s d 16s I 11s I")
+        data_size = None
+
+        temp_hash = None
+        temp_time = None
+        temp_case_id =None
+        temp_evidence_id =None
+        temp_state = None
+        temp_data_length = None
+        temp_data = None
+
+        f.seek(0,0)
+        file_location =0
         while True:
+            try:
+                #check if there is another byte
+                useless = f.read(1)
+                #return back to previous location
+                f.seek(file_location, 0)
+            except EOFError:
+                if debug:
+                    print('end of file at:'+ str(file_location))
+                break
+            #unpack data
+            temp_hash, temp_time, temp_case_id, temp_evidence_id, temp_state, temp_data_length = struct.unpack("20s d 16s I 11s I", f.read(section_size))
+            
+            formatstring = str(temp_data_length)+"s"
+            data_size = struct.calcsize(formatstring)
+            temp_data = struct.unpack(formatstring, f.read(data_size))
+            #increment file_location 
+            file_location = file_location+ section_size + data_size
+
+            #format the variables back to how we like them
+            temp_hash = temp_hash.encode("utf-8")
+            temp_time = int(temp_time)
+            temp_case_id = temp_case_id.encode("utf-8")
+            temp_state = temp_state.encode("utf-8")
+            temp_data = temp_dat).encode("utf-8")
+
+
+            if debug:
+                print(str(temp_hash)+' '+str(temp_time)+' '+str(temp_case_id)+' '+str(temp_evidence_id)+' '+str(temp_state)+' '+str(temp_data_length)+' '+str(temp_data))
+
             #some variation on this to add 
             new_block = block()
-            new_block.set_timestamp()
-            new_block.set_prev_hash(None)
-            new_block.set_case_id(None)
-            new_block.set_evidence_id(None)
-            new_block.set_state("INITIAL")
-            new_block.set_data_length(14)
-            new_block.set_data("Initial Block")
+            new_block.set_old_timestamp(temp_time)
+            new_block.set_prev_hash(temp_hash)
+            new_block.set_case_id(temp_case_id)
+            new_block.set_evidence_id(temp_evidence_id)
+            new_block.set_state(temp_state)
+            new_block.set_data_length(temp_data_length)
+            new_block.set_data(temp_data)
             self.add_block(new_block)
             #some break when reaching the end of the file
-        '''
+
 
         
     
