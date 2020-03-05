@@ -98,6 +98,7 @@ class blockchain:
     # blockchain()
     def __init__(self, dll=linkedlist.doubly_linked_list()):
         self.dll = dll
+        self.file_path = os.environ.get("BCHOC_FILE_PATH") 
     
     # TODO: Calculate hash of last block for added block
     def add_block(self, block):
@@ -129,9 +130,9 @@ class blockchain:
                 temp = temp.next_node
         return block()
     
-    def export_bc(self, file_path):
+    def export_bc(self):
         blocks = self.get_list()
-        fp = open(file_path, "wb")
+        fp = open(self.file_path, "wb")
         #blocks is an array of nodes/blocks from the linked list
         for i in blocks:
             #get the data from the block
@@ -144,7 +145,7 @@ class blockchain:
             temp_data = i.get_data()
             if debug:
                 print(str(temp_hash)+' '+str(temp_time)+' '+str(temp_case_id)+' '+str(temp_evidence_id)+' '+str(temp_state)+' '+str(temp_data_length))
-            #turn it to bytes where we need
+            #turn strings to bytes
             
             if temp_state == "INITIAL":
                 temp_hash = bytes(str(temp_hash), 'utf-8')
@@ -168,9 +169,9 @@ class blockchain:
 
         fp.close()
         
-    def import_bc(self, file_path):
+    def import_bc(self):
         # If cant find file, throw err
-        f = open(file_path, "rb")
+        f = open(self.file_path, "rb")
         
         '''
         while True:
@@ -197,61 +198,37 @@ class blockchain:
     
     # Checks for initial block
     def init(self):
-        try:
-            # Grab our filepath
-            file_path = os.environ.get("BCHOC_FILE_PATH")
-        except:
-            print('NO PATH FOUND IN ENVIRONMENT VARIABLE')
-        if debug:
-            print('Filepath found was:'+ str(file_path) )
-        ######################################################
+        #check if there is a INITIAL block
+        #TODO: do stuff to check
         
-        # Import blockchain
-        if os.path.exists(file_path):
-
-            bc = self.import_bc(file_path)
-            if debug:
-                print('successful import') 
-            
-            #check if there is a INITIAL block
-            #TODO: do stuff to check
-            
-            '''
-            if INITIAL_found:
-                print('Blockchain file found with INITIAL block.')
-            else:
-                #TODO:  should this go here too?
-                #       or maybe raise an exception so it goes into the
-                #       next seciton? -----> but then it would erase the data
-                #       previously stored. But if its not found then the BC was
-                #       altered and no longer authentic?---> probably 
-                #       wont be checked.
-                print('Blockchain file not found. Created INITIAL block.')
-            '''
-                       
+        '''
+        if INITIAL_found:
+            print('Blockchain file found with INITIAL block.')
         else:
-            if debug:
-                print('failed to import blockchain file')
-            
-            # File didnt exit or no iniitiial block, we must make our own
-            new_block = block()
-            new_block.set_timestamp()
-            new_block.set_prev_hash(None)
-            new_block.set_case_id(None)
-            new_block.set_evidence_id(None)
-            new_block.set_state("INITIAL")
-            new_block.set_data_length(14)
-            new_block.set_data("Initial Block")
-            self.add_block(new_block)
-            
-            
-            # Write to file
-            err = self.export_bc(file_path)
-            if err:
-                print("Error writing to file")
-                sys.exit(1)
+            #TODO:  should this go here too?
+            #       or maybe raise an exception so it goes into the
+            #       next seciton? -----> but then it would erase the data
+            #       previously stored. But if its not found then the BC was
+            #       altered and no longer authentic?---> probably 
+            #       wont be checked.
             print('Blockchain file not found. Created INITIAL block.')
-        sys.exit(0)
+        '''
+                       
+       
+            
+        # File didnt exit or no iniitiial block, we must make our own
+        new_block = block()
+        new_block.set_timestamp()
+        new_block.set_prev_hash(None)
+        new_block.set_case_id(None)
+        new_block.set_evidence_id(None)
+        new_block.set_state("INITIAL")
+        new_block.set_data_length(14)
+        new_block.set_data("Initial Block")
+        self.add_block(new_block)
+            
+            
+        
          
             
 # Define our library methods

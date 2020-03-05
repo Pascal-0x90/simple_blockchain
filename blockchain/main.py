@@ -5,6 +5,7 @@ import uuid # For the case id. Probably used in the caseID module
 import sys
 import linkedlist
 import block_chain
+import os
 
 DEBUG = False # Set to true for verbosity of main
 
@@ -127,10 +128,18 @@ def main():
             
         '''
     elif option == 'init':
-        print('action chosen was init')
-        #call the init funciton
-        bc_obj.init()
-        
+        if DEBUG:
+            print('action chosen was init')
+        if os.path.exists(bc_obj.file_path):
+            bc_obj.import_bc()
+            print('Blockchain file found with INITIAL block.')
+        else:
+            #call the init funciton
+            bc_obj.init()
+            # Write to file
+            bc_obj.export_bc()
+            
+            print('Blockchain file not found. Created INITIAL block.')
 
     elif option == 'add':
         if DEBUG:
