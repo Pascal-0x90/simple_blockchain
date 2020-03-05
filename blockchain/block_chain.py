@@ -6,7 +6,7 @@ import sys
 import time
 import struct
 import linkedlist
-debug = True
+debug = False
 
 '''
 Methods needed:
@@ -49,11 +49,12 @@ class block:
         self.timestamp = int(data)
         
     def set_case_id(self, case_id): # Case id is still a string at this point
-        if case_id is None:
+        if case_id == None:
             self.case_id = None
             return 0
         uid = uuid.UUID(case_id)
         self.case_id = uid
+        return 0
     
     def set_evidence_id(self, evidence_id):
         self.evidence_id = evidence_id
@@ -190,35 +191,54 @@ class blockchain:
 
         f.seek(0,0)
         file_location =0
+        
         while True:
-            try:
-                #check if there is another byte
-                useless = f.read(1)
+            
+            #check if there is another byte
+            useless = f.read(1)
+            if debug:
+                    print(useless)
+                    print(str(type(useless)))
+            if useless == b'':
+                break
+            else:
                 #return back to previous location
                 f.seek(file_location, 0)
-            except EOFError:
-                if debug:
-                    print('end of file at:'+ str(file_location))
-                break
+            
             #unpack data
             temp_hash, temp_time, temp_case_id, temp_evidence_id, temp_state, temp_data_length = struct.unpack("20s d 16s I 11s I", f.read(section_size))
             
             formatstring = str(temp_data_length)+"s"
             data_size = struct.calcsize(formatstring)
-            temp_data = struct.unpack(formatstring, f.read(data_size))
+            temp_data = struct.unpack(formatstring, f.read(data_size))[0]
             #increment file_location 
             file_location = file_location+ section_size + data_size
+            
+            if debug:
+                print(str(temp_hash)+' '+str(temp_time)+' '+str(temp_case_id)+' '+str(temp_evidence_id)+' '+str(temp_state)+' '+str(temp_data_length)+' '+str(temp_data))
+                print(str(type(temp_hash))+' '+str(type(temp_time))+' '+str(type(temp_case_id))+' '+str(type(temp_evidence_id))+' '+str(type(temp_state))+' '+str(type(temp_data_length))+' '+str(type(temp_data)))
 
             #format the variables back to how we like them
-            temp_hash = temp_hash.encode("utf-8")
+            temp_hash = temp_hash.decode("utf-8")
             temp_time = int(temp_time)
-            temp_case_id = temp_case_id.encode("utf-8")
-            temp_state = temp_state.encode("utf-8")
-            temp_data = temp_dat).encode("utf-8")
+            temp_case_id = temp_case_id.decode("utf-8")
+            temp_state = temp_state.decode("utf-8")
+            temp_data = temp_data.decode("utf-8")
 
 
             if debug:
                 print(str(temp_hash)+' '+str(temp_time)+' '+str(temp_case_id)+' '+str(temp_evidence_id)+' '+str(temp_state)+' '+str(temp_data_length)+' '+str(temp_data))
+                print(str(type(temp_hash))+' '+str(type(temp_time))+' '+str(type(temp_case_id))+' '+str(type(temp_evidence_id))+' '+str(type(temp_state))+' '+str(type(temp_data_length))+' '+str(type(temp_data)))
+            
+            #if we find that this is an initial block, then set the values to be None types.
+            #we can keep this as the only check/verificaiton that "this" is the initial block , or specifically check each variable to be == "None"
+            if 'INITIAL' in temp_state:
+                if debug:
+                    print("Found the initial block")
+                temp_hash = None
+                temp_case_id = None
+
+
 
             #some variation on this to add 
             new_block = block()
