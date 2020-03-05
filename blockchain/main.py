@@ -133,8 +133,14 @@ def main():
         if os.path.exists(bc_obj.file_path):
             bc_obj.import_bc()
             #find the init block
-            bc_obj.search_by_id(0)
-            print('Blockchain file found with INITIAL block.')
+            wasFound = bc_obj.search_by_id(0)
+
+            #
+            if wasFound:
+                print('Blockchain file found with INITIAL block.')
+            else:
+                if DEBUG:
+                    print('imported but did not find init block')
         else:
             #call the init funciton
             bc_obj.init()
