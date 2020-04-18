@@ -6,6 +6,7 @@ import sys
 import time
 import struct
 import linkedlist
+import hashlib
 debug = False
 
 '''
@@ -291,6 +292,81 @@ class blockchain:
         new_block.set_data_length(14)
         new_block.set_data("Initial Block")
         self.add_block(new_block)
+
+    '''
+    Utilities for verify
+    '''
+    def verify_parents(blocklist):
+        for i in blocklist:
+            temp_hash = i.get_prev_hash()
+            if temp_hash == None:
+                return i.get_case_id()
+        return None
+
+    def verify_dupe(blocklist):
+        seen = {}
+        dupes = []
+        for i in blocklist:
+            temp_hash = i.get_prev_hash()
+            temp_block = hashlib.md5(i).hexdigest()
+            for temp_hash not in seen:
+                seen[temp_hash] = 1
+            else:
+                if seen[temp_hash] == 1:
+                    dupes.append(temp_block)
+                    dupes.append(temp_hash)
+                seen[temp_hash] += 1
+        if len(dupes) != 0:
+            return dupes[0]
+        return None
+
+    def verify_checksum(blocklist):
+        
+
+
+    def verify_checkin(blocklist):
+
+
+    
+    '''
+    This will parse the blockchain and validate all 
+    entries. 
+    '''
+    def verify(self):
+        transactions = self.get_size()
+        blocklist = self.get_list()
+        print("Transactions in blockchain: {}".format(transactions, get_type(transactions))
+
+        parents = verify_parents(blocklist)
+        dupe = verify_dupe(blocklist)
+        checksum = verify_checksum(blocklist)
+        checkin = verify_checkin(blocklist)
+
+        if (parents != None):
+            state = 'ERROR'
+            print("State of blockchain: {}").format(state,get_type(state))
+            print("Bad block: {}").format(parents,get_type(parents))
+            print("Parent block: NOT FOUND")
+        elif (dupe != None):
+            state = 'ERROR'
+            print("State of blockchain: {}").format(state,get_type(state))
+            print("Bad block: {}").format(dupe[0],get_type(dupe[0]))
+            print("Parent block: {}").format(dupe[1],get_type(dupe[1]))
+            print("Two blocks found with same parent.")
+        elif (checksum != None):
+            state = 'ERROR'
+            print("State of blockchain: {}").format(state,get_type(state))
+            print("Bad block: {}").format(checksum,get_type(checksum))
+            print("Block contents do not match block checksum.")
+        elif (checkin != None):
+            state = 'ERROR'
+            print("State of blockchain: {}").format(state,get_type(state))
+            print("Bad block: {}").format(checkin,get_type(checkin))
+            print("Item checked out or checked in after removal from chain.")
+        else:
+            state = 'CLEAN'
+            print("State of blockchain: {}").format(state,get_type(state))
+
             
             
         
@@ -384,10 +460,5 @@ program can read from an initial block
 def init(bc: blockchain):
     pass
 
-'''
-This will parse the blockchain and validate all 
-entries. 
-'''
-def verify(bc: blockchain):
-    pass    
+
     
