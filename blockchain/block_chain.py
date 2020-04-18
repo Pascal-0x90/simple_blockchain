@@ -252,9 +252,6 @@ class blockchain:
             new_block.set_data(temp_data)
             self.add_block(new_block)
             #some break when reaching the end of the file
-
-
-        
     
         f.close()
         
@@ -321,11 +318,10 @@ class blockchain:
         return None
 
     def verify_checksum(blocklist):
-        
-
+        pass # Pass for now
 
     def verify_checkin(blocklist):
-
+        pass # Pass for now
 
     
     '''
