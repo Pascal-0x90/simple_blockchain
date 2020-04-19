@@ -252,9 +252,6 @@ class blockchain:
             new_block.set_data(temp_data)
             self.add_block(new_block)
             #some break when reaching the end of the file
-
-
-        
     
         f.close()
         
@@ -344,6 +341,7 @@ class blockchain:
                     if dupe_id == temp_id:
                         return temp_block
         return None
+
     '''
     This will parse the blockchain and validate all 
     entries. 
