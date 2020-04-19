@@ -38,11 +38,11 @@ def main():
     parser_add.set_defaults(which='add')
 
     parser_checkout=subparsers.add_parser('checkout',help='Add a new evidence item to the blockchain and associate it with the given case identifier')
-    parser_checkout.add_argument('-c', type=str, metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=True)
+    parser_checkout.add_argument('-i', type=str, metavar='ITEM_ID', help='Specifies the item identifier that the evidence is associated with', required=True)
     parser_checkout.set_defaults(which='checkout')
 
     parser_checkin=subparsers.add_parser('checkin',help='Add a new checkin entry to the chain of custody for the given evidence item')
-    parser_checkin.add_argument('-c', type=str,metavar='CASE_ID', help='Specifies the case identifier that the evidence is associated with', required=True)
+    parser_checkin.add_argument('-i', type=str,metavar='ITEM_ID', help='Specifies the item identifier that the evidence is associated with', required=True)
     parser_checkin.set_defaults(which='checkin')
 
     parser_log=subparsers.add_parser('log',help='Display the blockchain entries giving the oldest first (unless -r is given)')
