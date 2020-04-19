@@ -88,26 +88,59 @@ def main():
 
     # Begin our case statements
     if option == 'checkout':
+        #if its CHECKEDOUT then checkout() will fail, aka it will have ot be CHECKEDIN to succeed
+        bc_obj.import_bc()
+        item_id = args.i
         if DEBUG:
+            print(type(item_id))
             print('action chosen was checkout')
-        case_id = args.c            # String
-        print(type(case_id))
-        '''
-        requires:
+
+        #find a block with the same item_id
+        prev_block = bc_obj.search_by_id(item_id)
+        if prev_block is None:
+            #print and error that we did not find a block with that item_id?
+            pass
+        else:
+            #call get the current state of this item and check that the current state is CHECKEDIN
+            current_state = bc_obj.get_curr_state_of_item(item_id)
+            if current_state == "CHECKEDIN":
+                new_block = bc_obj.checkout(item_id, prev_block.case_id)
+                #print details
+                print("Case: "+str(new_block.get_case_id()))
+                print("Checked in item: "+str(new_block.get_evidence_id()))
+                print("\tStatus: "+str(new_block.get_state()))
+                print("\tTime of action: "+str(new_block.get_timestamp()))
+            elif current_state == "CHECKEDOUT":
+                print('Error: Cannot check out a checked out item. Must check it in first.')
         
-        returns:
-            
-        '''
+
+
     elif option == 'checkin':
+        #if its DESTROYED, DISPOSED, RELEASED, or CHECKEDOUT then checkout() will fail, aka it will have ot be CHECKEDIN to succeed
+        bc_obj.import_bc()
+        item_id = args.i 
         if DEBUG:
+            print(type(item_id))
             print('action chosen was checkin')
-        case_id = args.c            # String
-        '''
-        requires:
+        prev_block = bc_obj.search_by_id(item_id)
+        if prev_block is None:
+            #print and error that we did not find a block with that item_id?
+            pass
+        else:
+            #call get the current state of this item and check that the current state is CHECKEDIN
+            current_state = bc_obj.get_curr_state_of_item(item_id)
+            if current_state == "CHECKEDOUT":
+                new_block = bc_obj.checkin(item_id, prev_block.case_id)
+                #print details
+                print("Case: "+str(new_block.get_case_id()))
+                print("Checked in item: "+str(new_block.get_evidence_id()))
+                print("\tStatus: "+str(new_block.get_state()))
+                print("\tTime of action: "+str(new_block.get_timestamp()))
+            elif current_state == "CHECKEDIN":
+                #print error if checked in item?
+                #print('Error: Cannot check in a checked in item. Must check it out first.')
+                pass
         
-        returns:
-            
-        '''
     elif option == 'remove':
         if DEBUG:
             print('action chosen was remove')
