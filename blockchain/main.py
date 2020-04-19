@@ -68,6 +68,7 @@ def main():
 
     # Parse the arguments passed to the program
     args = parser.parse_args()
+    
     if DEBUG:
         print(args)
     
@@ -80,6 +81,10 @@ def main():
 
     #get the blockchain object
     bc_obj = block_chain.blockchain()
+    # Obtain or init block chain at each run
+    if option != 'init':
+        # Check but no printout
+        bc_obj.init(True)
 
     # Begin our case statements
     if option == 'checkout':
@@ -130,24 +135,8 @@ def main():
     elif option == 'init':
         if DEBUG:
             print('action chosen was init')
-        if os.path.exists(bc_obj.file_path):
-            bc_obj.import_bc()
-            #find the init block
-            wasFound = bc_obj.search_by_id(0)
-
-            #
-            if wasFound:
-                print('Blockchain file found with INITIAL block.')
-            else:
-                if DEBUG:
-                    print('imported but did not find init block')
-        else:
-            #call the init funciton
-            bc_obj.init()
-            # Write to file
-            bc_obj.export_bc()
-            
-            print('Blockchain file not found. Created INITIAL block.')
+        # Since it is already init'd, we can just export
+        bc_obj.init()
 
     elif option == 'add':
         if DEBUG:
@@ -155,12 +144,8 @@ def main():
         #please remember that this is the only option where ITEM_ID can be represented as a list, rather than just an int
         case_id = args.c            # String, need to conv to UUID
         item_id = args.i            # int or List
-        '''
-        requires:
-        
-        returns:
-            
-        '''
+        bc_obj.new_evidence_add(case_id, item_id)
+
     elif option == 'log':
         if DEBUG:
             print('action chosen was log')
