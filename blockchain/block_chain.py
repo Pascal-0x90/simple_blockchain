@@ -38,8 +38,9 @@ def verify_dupe(blocklist):
     for i in blocklist:
         temp_hash = i.get_prev_hash()
         temp_block = hashlib.md5(i).hexdigest()
-        for temp_hash not in seen:
-            seen[temp_hash] = 1
+        for i in seen:
+            if temp_hash is i:
+                seen[temp_hash] = 1
         else:
             if seen[temp_hash] == 1:
                 dupes.append(temp_block)
