@@ -224,6 +224,16 @@ class blockchain:
                 temp = temp.next_node
         return None
     
+    def get_curr_state_of_item(self, item_id):
+        #this goes all the way through the dll and gets the last/ most recent block with the item ID
+        temp = self.dll.head
+        matched_block_state = None
+        while temp != None:
+            if temp.block.get_evidence_id() == item_id:
+                matched_block_state = temp.block.get_state()
+            temp = temp.next_node
+        return matched_block_state
+    
     def export_bc(self):
         blocks = self.get_list()
         fp = open(self.file_path, "wb")
@@ -385,6 +395,30 @@ class blockchain:
             self.add_block(new_block)
         if check_only is False:
             self.export_bc()
+
+    def checkout(self, item_id, case_id):
+        new_block = block()
+        new_block.set_prev_hash(bc.get_recent())
+        new_block.set_timestamp()
+        new_block.set_case_id(case_id)
+        new_block.set_evidence_id(item_id)
+        new_block.set_state("CHECKEDOUT")
+        new_block.set_data_length(0)
+        new_block.set_data(None)
+        bc.add_block(new_block)
+        return new_block
+
+    def checkin(self, item_id, case_id):
+        new_block = block()
+        new_block.set_prev_hash(bc.get_recent())
+        new_block.set_timestamp()
+        new_block.set_case_id(case_id)
+        new_block.set_evidence_id(item_id)
+        new_block.set_state("CHECKEDIN")
+        new_block.set_data_length(0)
+        new_block.set_data(None)
+        bc.add_block(new_block)
+        return new_block
     
     '''
     This will parse the blockchain and validate all 
