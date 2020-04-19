@@ -300,7 +300,7 @@ class blockchain:
         for i in blocklist:
             temp_hash = i.get_prev_hash()
             if temp_hash == None:
-                return i.get_case_id()
+                return hashlib.md5(i).hexdigest()
         return None
 
     def verify_dupe(blocklist):
@@ -321,13 +321,29 @@ class blockchain:
         return None
 
     def verify_checksum(blocklist):
-        
+        #hash of the last block
+        #compare a block's get_prev_hash with hash of previous block
+        for i in blocklist:
+            temp_hash = i.get_prev_hash()
+            temp_block = hashlib.md5(i).hexdigest()
+            if temp_hash != temp_block
+                return temp_block
+        return None
 
 
     def verify_checkin(blocklist):
+        #from a checkedout node (check state), check remaining nodes for same evidence ID
 
-
-    
+        for i in blocklist:
+            temp_state = i.get_state()
+            temp_id = i.get_evidence_id()
+            temp_block = hashlib.md5(i).hexdigest()
+            if temp_state == 'RELEASED':
+                for k in blocklist:
+                    dupe_id = k.get_evidence_id()
+                    if dupe_id == temp_id:
+                        return temp_block
+        return None
     '''
     This will parse the blockchain and validate all 
     entries. 
