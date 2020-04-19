@@ -21,6 +21,60 @@ Methods needed:
     verify
 '''
 
+
+'''
+Utilities for verify
+'''
+def verify_parents(blocklist):
+    for i in blocklist:
+        temp_hash = i.get_prev_hash()
+        if temp_hash == None:
+            return hashlib.md5(i).hexdigest()
+    return None
+
+def verify_dupe(blocklist):
+    seen = {}
+    dupes = []
+    for i in blocklist:
+        temp_hash = i.get_prev_hash()
+        temp_block = hashlib.md5(i).hexdigest()
+        for temp_hash not in seen:
+            seen[temp_hash] = 1
+        else:
+            if seen[temp_hash] == 1:
+                dupes.append(temp_block)
+                dupes.append(temp_hash)
+            seen[temp_hash] += 1
+    if len(dupes) != 0:
+        return dupes[0]
+    return None
+
+def verify_checksum(blocklist):
+    #hash of the last block
+    #compare a block's get_prev_hash with hash of previous block   
+    for i in blocklist:
+        temp_hash = i.get_prev_hash()
+        temp_block = hashlib.md5(i).hexdigest()
+        if temp_hash != temp_block:
+            return temp_block
+    return None
+
+
+def verify_checkin(blocklist):
+    #from a checkedout node (check state), check remaining nodes for same evidence ID
+
+    for i in blocklist:
+        temp_state = i.get_state()
+        temp_id = i.get_evidence_id()
+        temp_block = i.get_self_hash() # Grab sha1-hash
+        if temp_state == 'RELEASED':
+            for k in blocklist:
+                dupe_id = k.get_evidence_id()
+                if dupe_id == temp_id:
+                    return temp_block
+    return None
+
+
 # Define our classes for our library
 '''
 This is the block class. Has variables which pretain to 
@@ -330,171 +384,41 @@ class blockchain:
             self.add_block(new_block)
         if check_only is False:
             self.export_bc()
-        
-        
-
-
-        
-        
-
-
-#     '''
-#     Utilities for verify
-#     '''
-#     def verify_parents(blocklist):
-#         for i in blocklist:
-#             temp_hash = i.get_prev_hash()
-#             if temp_hash == None:
-#                 return i.get_case_id()
-#         return None
-
-#     def verify_dupe(blocklist):
-#         seen = {}
-#         dupes = []
-#         for i in blocklist:
-#             temp_hash = i.get_prev_hash()
-#             temp_block = hashlib.md5(i).hexdigest()
-#             for temp_hash not in seen:
-#                 seen[temp_hash] = 1
-#             else:
-#                 if seen[temp_hash] == 1:
-#                     dupes.append(temp_block)
-#                     dupes.append(temp_hash)
-#                 seen[temp_hash] += 1
-#         if len(dupes) != 0:
-#             return dupes[0]
-#         return None
-
-#     def verify_checksum(blocklist):
-#         pass # Pass for now
-
-#     def verify_checkin(blocklist):
-#         pass # Pass for now
-
     
-#     '''
-#     This will parse the blockchain and validate all 
-#     entries. 
-#     '''
-#     def verify(self):
-#         transactions = self.get_size()
-#         blocklist = self.get_list()
-#         print("Transactions in blockchain: {}".format(transactions, get_type(transactions))
+    '''
+    This will parse the blockchain and validate all 
+    entries. 
+    '''
+    def verify(self):
+        transactions = self.get_size()
+        blocklist = self.get_list()
+        print("Transactions in blockchain: {}".format(transactions))
+        parents = verify_parents(blocklist)
+        dupe = verify_dupe(blocklist)
+        checksum = verify_checksum(blocklist)
+        checkin = verify_checkin(blocklist)
 
-#         parents = verify_parents(blocklist)
-#         dupe = verify_dupe(blocklist)
-#         checksum = verify_checksum(blocklist)
-#         checkin = verify_checkin(blocklist)
-
-#         if (parents != None):
-#             state = 'ERROR'
-#             print("State of blockchain: {}").format(state,get_type(state))
-#             print("Bad block: {}").format(parents,get_type(parents))
-#             print("Parent block: NOT FOUND")
-#         elif (dupe != None):
-#             state = 'ERROR'
-#             print("State of blockchain: {}").format(state,get_type(state))
-#             print("Bad block: {}").format(dupe[0],get_type(dupe[0]))
-#             print("Parent block: {}").format(dupe[1],get_type(dupe[1]))
-#             print("Two blocks found with same parent.")
-#         elif (checksum != None):
-#             state = 'ERROR'
-#             print("State of blockchain: {}").format(state,get_type(state))
-#             print("Bad block: {}").format(checksum,get_type(checksum))
-#             print("Block contents do not match block checksum.")
-#         elif (checkin != None):
-#             state = 'ERROR'
-#             print("State of blockchain: {}").format(state,get_type(state))
-#             print("Bad block: {}").format(checkin,get_type(checkin))
-#             print("Item checked out or checked in after removal from chain.")
-#         else:
-#             state = 'CLEAN'
-#             print("State of blockchain: {}").format(state,get_type(state))
-
-            
-            
-        
-         
-            
-# # Define our library methods
-
-# '''
-# This function is to add new evidence item to bc and
-# associate it with a given case #.
-
-# <create block> --> <add in attributes> --> bc.add(new_block)
-# '''
-# def add(bc: blockchain, case_id, item_id): # where item_id is a list
-#     for item in item_id:
-        
-        
-
-# '''
-# Add a new checkout entry to the bc for a given 
-# evidence item. 
-
-# <create block> --> <add in attributes> --> bc.add(new_block)
-# '''
-# def checkout(bc: blockchain, item_id):
-#     # Despite this one taking the item_id, the spec only says one ID
-#     # will be/should be passed. So we take the first element
-#     iden = int(item_id[0])
-#     ref_block = bc.search_by_id(iden)
-#     if ref_block.get_case_id is not None:
-#         new_block = block()
-#         new_block.set_prev_hash(bc.get_recent())
-#         new_block.set_timestamp()
-#         new_block.set_case_id(str(ref_block.get_case_id())) # Send string version
-#         new_block.set_evidence_id(iden)
-#         new_block.set_state("CHECKEDOUT")
-#         new_block.set_data_length(0)
-#         new_block.set_data(None)
-#         bc.add_block(new_block)
-        
-
-# '''
-# Add a new checkout entry to the bc for a given 
-# evidence item. 
-
-# <create block> --> <add in attributes> --> bc.add(new_block)
-# '''
-# def checkin(bc: blockchain, item_id):
-#     iden = int(item_id[0])
-#     ref_block = bc.search_by_id(iden)
-#     if ref_block.get_case_id is not None:
-#         new_block = block()
-#         new_block.set_prev_hash(bc.get_recent())
-#         new_block.set_timestamp()
-#         new_block.set_case_id(str(ref_block.get_case_id())) # Send string version
-#         new_block.set_evidence_id(iden)
-#         new_block.set_state("CHECKEDIN")
-#         new_block.set_data_length(0)
-#         new_block.set_data(None)
-#         bc.add_block(new_block)
-
-# '''
-# Display the blockchain entries giving the oldest first unles -r
-# '''
-# def log(bc: blockchain, r=False):
-#     if r:
-#         bc.print_bc_rev()
-#     else:
-#         bc.print_bc()
-
-# '''
-# Prevents any further action from being taken on the evidence item
-# which the user specifies. The item in question must have the state
-# of CHECKEDIN to be established before this action can continue.
-# '''
-# def remove(bc: blockchain):
-#     pass
-
-# '''
-# This is the sanity check, only startsup and checks to see if the 
-# program can read from an initial block
-# '''
-# def init(bc: blockchain):
-#     pass
-
-
-    
+        if (parents != None):
+            state = 'ERROR'
+            print("State of blockchain: {}").format(state,get_type(state))
+            print("Bad block: {}").format(parents,get_type(parents))
+            print("Parent block: NOT FOUND")
+        elif (dupe != None):
+            state = 'ERROR'
+            print("State of blockchain: {}").format(state,get_type(state))
+            print("Bad block: {}").format(dupe[0],get_type(dupe[0]))
+            print("Parent block: {}").format(dupe[1],get_type(dupe[1]))
+            print("Two blocks found with same parent.")
+        elif (checksum != None):
+            state = 'ERROR'
+            print("State of blockchain: {}").format(state,get_type(state))
+            print("Bad block: {}").format(checksum,get_type(checksum))
+            print("Block contents do not match block checksum.")
+        elif (checkin != None):
+            state = 'ERROR'
+            print("State of blockchain: {}").format(state,get_type(state))
+            print("Bad block: {}").format(checkin,get_type(checkin))
+            print("Item checked out or checked in after removal from chain.")
+        else:
+            state = 'CLEAN'
+            print("State of blockchain: {}").format(state,get_type(state))
