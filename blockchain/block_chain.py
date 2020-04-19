@@ -29,7 +29,7 @@ def verify_parents(blocklist):
     for i in blocklist:
         temp_hash = i.get_prev_hash()
         if temp_hash == None:
-            return hashlib.md5(i).hexdigest()
+            return i.get_self_hash()
     return None
 
 def verify_dupe(blocklist):
@@ -37,7 +37,7 @@ def verify_dupe(blocklist):
     dupes = []
     for i in blocklist:
         temp_hash = i.get_prev_hash()
-        temp_block = hashlib.md5(i).hexdigest()
+        temp_block = i.get_self_hash()
         for i in seen:
             if temp_hash is i:
                 seen[temp_hash] = 1
@@ -55,7 +55,7 @@ def verify_checksum(blocklist):
     #compare a block's get_prev_hash with hash of previous block   
     for i in blocklist:
         temp_hash = i.get_prev_hash()
-        temp_block = hashlib.md5(i).hexdigest()
+        temp_block = i.get_self_hash()
         if temp_hash != temp_block:
             return temp_block
     return None
