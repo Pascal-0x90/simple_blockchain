@@ -165,6 +165,7 @@ def main():
         returns:
             
         '''
+        bc_obj.verify()
     elif option == 'init':
         if DEBUG:
             print('action chosen was init')
