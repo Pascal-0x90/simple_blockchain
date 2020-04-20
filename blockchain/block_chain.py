@@ -26,44 +26,45 @@ Methods needed:
 Utilities for verify
 '''
 def verify_parents(blocklist):
-    for i in blocklist:
-        temp_hash = i.get_prev_hash()
-        if temp_hash == None:
-            return i.get_self_hash()
+    for i in range(len(blocklist)):
+        if i is 0:
+            pass
+        else:
+            temp_hash = blocklist[i].get_prev_hash()
+            if temp_hash == None:
+                return i.get_self_hash()
     return None
 
 def verify_dupe(blocklist):
-    seen = {}
+    seen = []
     dupes = []
     for i in blocklist:
         temp_hash = i.get_prev_hash()
         temp_block = i.get_self_hash()
-        for i in seen:
-            if temp_hash is i:
-                seen[temp_hash] = 1
-        else:
-            if seen[temp_hash] == 1:
+        for s in seen:
+            if temp_hash is s:
+                seen.append(temp_hash)
+            elif s is temp_hash:
                 dupes.append(temp_block)
                 dupes.append(temp_hash)
-            seen[temp_hash] += 1
-    if len(dupes) != 0:
-        return dupes[0]
+                return dupes
     return None
 
 def verify_checksum(blocklist):
     #hash of the last block
-    #compare a block's get_prev_hash with hash of previous block   
-    for i in blocklist:
-        temp_hash = i.get_prev_hash()
-        temp_block = i.get_self_hash()
-        if temp_hash != temp_block:
-            return temp_block
+    #compare a block's get_prev_hash with hash of previous block 
+    for i in range(len(blocklist)):
+        if i is 0:
+            pass
+        else:  
+            temp_hash = blocklist[i].get_prev_hash()
+            temp_block = blocklist[i].get_self_hash()
+            if temp_hash != temp_block:
+                return temp_block
     return None
-
 
 def verify_checkin(blocklist):
     #from a checkedout node (check state), check remaining nodes for same evidence ID
-
     for i in blocklist:
         temp_state = i.get_state()
         temp_id = i.get_evidence_id()
@@ -435,25 +436,25 @@ class blockchain:
 
         if (parents != None):
             state = 'ERROR'
-            print("State of blockchain: {}").format(state,get_type(state))
-            print("Bad block: {}").format(parents,get_type(parents))
+            print("State of blockchain: {}".format(state))
+            print("Bad block: {}".format(parents))
             print("Parent block: NOT FOUND")
         elif (dupe != None):
             state = 'ERROR'
-            print("State of blockchain: {}").format(state,get_type(state))
-            print("Bad block: {}").format(dupe[0],get_type(dupe[0]))
-            print("Parent block: {}").format(dupe[1],get_type(dupe[1]))
+            print("State of blockchain: {}".format(state))
+            print("Bad block: {}".format(dupe[0]))
+            print("Parent block: {}".format(dupe[1]))
             print("Two blocks found with same parent.")
         elif (checksum != None):
             state = 'ERROR'
-            print("State of blockchain: {}").format(state,get_type(state))
-            print("Bad block: {}").format(checksum,get_type(checksum))
+            print("State of blockchain: {}".format(state))
+            print("Bad block: {}".format(checksum))
             print("Block contents do not match block checksum.")
         elif (checkin != None):
             state = 'ERROR'
-            print("State of blockchain: {}").format(state,get_type(state))
-            print("Bad block: {}").format(checkin,get_type(checkin))
+            print("State of blockchain: {}".format(state))
+            print("Bad block: {}".format(checkin))
             print("Item checked out or checked in after removal from chain.")
         else:
             state = 'CLEAN'
-            print("State of blockchain: {}").format(state,get_type(state))
+            print("State of blockchain: {}".format(state))
