@@ -57,10 +57,14 @@ def verify_checksum(blocklist):
         if i is 0:
             pass
         else:  
-            temp_hash = blocklist[i].get_prev_hash()
-            temp_block = blocklist[i].get_self_hash()
+            temp_hash = blocklist[i].get_prev_hash().hex()
+            temp_block = blocklist[i-1].get_self_hash().hex()
             if temp_hash != temp_block:
-                return temp_block
+                print(i)
+                print(blocklist[i].get_evidence_id())
+                print(temp_hash)
+                print(temp_block)
+                return blocklist[i].get_self_hash().hex()
     return None
 
 def verify_checkin(blocklist):
@@ -97,6 +101,7 @@ class block:
     
     # Define setters
     def set_prev_hash(self, block, prev_hash=None):
+        print(prev_hash)
         if block == None and prev_hash != None:
             self.prev_hash = prev_hash
             return
@@ -104,6 +109,7 @@ class block:
             self.prev_hash = None
         else:
             self.prev_hash = block.get_self_hash() 
+            print(block.prev_hash)
         
     def set_timestamp(self):
         # This will set timestamp based on current time
@@ -158,9 +164,9 @@ class block:
         if self.state == "INITIAL":
             guts = "\x00".encode() + bytes(struct.pack("d",self.timestamp)) + "\x00".encode() + "\x00".encode() + self.state.encode() + bytes(self.data_length) + self.data.encode()
         else:
-            guts = self.prev_hash.encode() + bytes(struct.pack("d",self.timestamp)) + uuid.UUID(self.case_id.hex()).bytes + bytes(self.evidence_id) + self.state.encode() + bytes(self.data_length) + self.data.encode()
+            guts = self.prev_hash + bytes(struct.pack("d",self.timestamp)) + uuid.UUID(self.case_id.hex()).bytes + bytes(self.evidence_id) + self.state.encode() + bytes(self.data_length) + self.data.encode()
         self_hash = hashlib.sha1(guts)
-        return self_hash.hexdigest()
+        return bytes.fromhex(self_hash.hexdigest())
     
 '''
 This is the blockchain which is a linked list of the blocks
@@ -335,6 +341,8 @@ class blockchain:
                     print("Found the initial block")
                 temp_hash = None
                 temp_case_id = None
+            else:
+                temp_hash = temp_hash.encode()
 
             #some variation on this to add 
             new_block = block()
