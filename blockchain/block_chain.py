@@ -8,7 +8,7 @@ from datetime import timezone, datetime
 import struct
 import linkedlist
 import hashlib
-DEBUG = False
+DEBUG = True
 
 '''
 Methods needed:
@@ -76,6 +76,15 @@ def verify_checkin(blocklist):
                     return temp_block
     return None
 
+
+def chop_ending_bytes(value):
+        result = ""
+        for char in value:
+            if char.encode() != b'\x00':
+                result = result + char
+            else:
+                return result
+        return result
 
 # Define our classes for our library
 '''
@@ -198,7 +207,7 @@ class blockchain:
             new_block.set_prev_hash(self.get_recent())
             new_block.set_timestamp()
             new_block.set_case_id(bytes().fromhex(case_id))
-            new_block.set_evidence_id(item)
+            new_block.set_evidence_id(int(item))
             new_block.set_state("CHECKEDIN")
             new_block.set_data_length(0)
             new_block.set_data("")
@@ -211,7 +220,7 @@ class blockchain:
     # TODO: Change this to format properly    
     def print_bc(self):
         self.dll.print_list()
-    
+
     # TODO: Change this to format properly        
     def print_bc_rev(self):
         self.dll.print_reverse()
@@ -219,8 +228,12 @@ class blockchain:
     def search_by_id(self, item_id):
         temp = self.dll.head
         while temp != None:
+            if DEBUG:
+                print('SEARCHING BY ID RESULTS '+str(temp.block.get_evidence_id()))
             if temp.block.get_evidence_id() == item_id:
-                return temp.block
+                if DEBUG:
+                    print('returning block')
+                return temp.get_block()
             else:
                 temp = temp.next_node
         return None
@@ -231,6 +244,8 @@ class blockchain:
         matched_block_state = None
         while temp != None:
             if temp.block.get_evidence_id() == item_id:
+                if DEBUG:
+                    print('SEARCHING FOR STATE: '+str(item_id))
                 matched_block_state = temp.block.get_state()
             temp = temp.next_node
         return matched_block_state
@@ -249,7 +264,7 @@ class blockchain:
             temp_data_length = i.get_data_length()
             temp_data = i.get_data()
             if DEBUG:
-                print(str(temp_hash)+' '+str(temp_time)+' '+str(temp_case_id)+' '+str(temp_evidence_id)+' '+str(temp_state)+' '+str(temp_data_length))
+                print(str(temp_hash)+' '+str(temp_time)+' '+str(temp_case_id)+' '+str(temp_evidence_id)+' '+str(temp_state)+' '+str(temp_data_length)+' '+str(temp_data))
             #turn strings to bytes
             
             if temp_state == "INITIAL":
@@ -314,23 +329,29 @@ class blockchain:
             file_location = file_location+ section_size + data_size
             
             if DEBUG:
+                print('Raw Data')
                 print(str(temp_hash)+' '+str(temp_time)+' '+str(temp_case_id)+' '+str(temp_evidence_id)+' '+str(temp_state)+' '+str(temp_data_length)+' '+str(temp_data))
                 print(str(type(temp_hash))+' '+str(type(temp_time))+' '+str(type(temp_case_id))+' '+str(type(temp_evidence_id))+' '+str(type(temp_state))+' '+str(type(temp_data_length))+' '+str(type(temp_data)))
 
             #format the variables back to how we like them
             temp_hash = temp_hash.decode("utf-8")
-            temp_time = int(temp_time)
+            temp_time = temp_time
             temp_case_id = temp_case_id # To convert to readable do uuid.UUID(case_id.hex())
-            temp_state = temp_state.decode("utf-8")[:-4]
-            temp_data = temp_data.decode("utf-8")[:-1]
+            temp_state = temp_state.decode("utf-8")
+            temp_data = temp_data.decode("utf-8")
+
+            #chop extra bits (bytes) off of the state string
+            temp_state = chop_ending_bytes(temp_state)
 
             if DEBUG:
+                print('into new data structs')
                 print(str(temp_hash)+' '+str(temp_time)+' '+str(temp_case_id)+' '+str(temp_evidence_id)+' '+str(temp_state)+' '+str(temp_data_length)+' '+str(temp_data))
                 print(str(type(temp_hash))+' '+str(type(temp_time))+' '+str(type(temp_case_id))+' '+str(type(temp_evidence_id))+' '+str(type(temp_state))+' '+str(type(temp_data_length))+' '+str(type(temp_data)))
             
             #if we find that this is an initial block, then set the values to be None types.
             #we can keep this as the only check/verificaiton that "this" is the initial block , or specifically check each variable to be == "None"
-            if 'INITIAL' in temp_state:
+
+            if 'INITIAL' == temp_state:
                 if DEBUG:
                     print("Found the initial block")
                 temp_hash = None
@@ -353,19 +374,7 @@ class blockchain:
     # Checks for initial block
     def init(self, check_only=False):
         #check if there is a INITIAL block
-        #TODO: do stuff to check
-        '''
-        if INITIAL_found:
-            print('Blockchain file found with INITIAL block.')
-        else:
-            #TODO:  should this go here too?
-            #       or maybe raise an exception so it goes into the
-            #       next seciton? -----> but then it would erase the data
-            #       previously stored. But if its not found then the BC was
-            #       altered and no longer authentic?---> probably 
-            #       wont be checked.
-            print('Blockchain file not found. Created INITIAL block.')
-        '''
+
         if os.path.exists(self.file_path):
             self.import_bc()
             #find the init block
@@ -373,7 +382,9 @@ class blockchain:
             # Check if it has some initial identifier
             if wasFound is not None:
                 state = wasFound.get_state()
-                if wasFound.get_state() == "INITIAL":
+                if DEBUG:
+                    print(state)
+                if state == "INITIAL":
                     if check_only is False:
                         print('Blockchain file found with INITIAL block.')
                 else:
@@ -389,37 +400,69 @@ class blockchain:
             new_block.set_timestamp()
             new_block.set_prev_hash(None)
             new_block.set_case_id(None)
-            new_block.set_evidence_id(None)
+            new_block.set_evidence_id(0)
             new_block.set_state("INITIAL")
             new_block.set_data_length(14)
-            new_block.set_data("Initial Block")
+            new_block.set_data("Initial block")
             self.add_block(new_block)
         if check_only is False:
             self.export_bc()
 
     def checkout(self, item_id, case_id):
         new_block = block()
-        new_block.set_prev_hash(bc.get_recent())
+        new_block.set_prev_hash(self.get_recent())
         new_block.set_timestamp()
         new_block.set_case_id(case_id)
         new_block.set_evidence_id(item_id)
         new_block.set_state("CHECKEDOUT")
         new_block.set_data_length(0)
-        new_block.set_data(None)
-        bc.add_block(new_block)
-        return new_block
+        new_block.set_data("")
+        self.add_block(new_block)
+        print("Case: "+str(new_block.get_case_id()))
+        print("Checked in item: "+str(new_block.get_evidence_id()))
+        print("\tStatus: "+str(new_block.get_state()))
+        print("\tTime of action: "+str(new_block.get_timestamp()))
+        self.export_bc()
+        
 
     def checkin(self, item_id, case_id):
         new_block = block()
-        new_block.set_prev_hash(bc.get_recent())
+        new_block.set_prev_hash(self.get_recent())
         new_block.set_timestamp()
         new_block.set_case_id(case_id)
         new_block.set_evidence_id(item_id)
         new_block.set_state("CHECKEDIN")
         new_block.set_data_length(0)
-        new_block.set_data(None)
-        bc.add_block(new_block)
-        return new_block
+        new_block.set_data("")
+        self.add_block(new_block)
+        print("Case: "+str(new_block.get_case_id()))
+        print("Checked in item: "+str(new_block.get_evidence_id()))
+        print("\tStatus: "+str(new_block.get_state()))
+        print("\tTime of action: "+str(new_block.get_timestamp()))
+        self.export_bc()
+
+    def remove(self, item_id, case_id, reason, owner):
+        new_block = block()
+        new_block.set_prev_hash(self.get_recent())
+        new_block.set_timestamp()
+        new_block.set_case_id(case_id)
+        new_block.set_evidence_id(item_id)
+        new_block.set_state(reason)
+        if owner:
+            new_block.set_data_length(len(owner))
+            new_block.set_data(owner)
+        else:
+            new_block.set_data_length(0)
+            new_block.set_data("")
+        self.add_block(new_block)
+        print("Case: "+str(new_block.get_case_id()))
+        print("Removed item: "+str(new_block.get_evidence_id()))
+        print("\tStatus: "+str(new_block.get_state()))
+        if owner:
+            print("\tOwner info: "+str(owner))
+        print("\tTime of action: "+str(new_block.get_timestamp()))
+        self.export_bc()
+
     
     '''
     This will parse the blockchain and validate all 

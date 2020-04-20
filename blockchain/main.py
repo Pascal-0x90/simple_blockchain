@@ -7,7 +7,7 @@ import linkedlist
 import block_chain
 import os
 
-DEBUG = False # Set to true for verbosity of main
+DEBUG = True # Set to true for verbosity of main
 
 '''
 Arguments:
@@ -55,8 +55,8 @@ def main():
 
     parser_remove=subparsers.add_parser('remove',help='Prevents any further action from being taken on the evidence item specified')
     parser_remove.add_argument('-i', type=int, nargs=1,action='store', metavar='ITEM_ID',help='Specifies the evidence item’s identifier', required=True)
-    parser_remove.add_argument('-y', '--why', type=str, help='Reason for the removal of the evidence item', required=True)
-    parser_remove.add_argument('-o', type=str,metavar='Owner', help='Information about the lawful owner to whom the evidence was released', required=False)
+    parser_remove.add_argument('-y', '--why', type=str, help='Reason for the removal of the evidence item',choices=['RELEASED', 'DISPOSED', 'DESTROYED'], required=True)
+    parser_remove.add_argument('-o', type=str,metavar='Owner', help='Information about the lawful owner to whom the evidence was released', required=(('-y' in sys.argv and 'RELEASED' in sys.argv) or ('--why' in sys.argv and 'RELEASED' in sys.argv)))
     parser_remove.set_defaults(which='remove')
 
     parser_init=subparsers.add_parser('init', help='Sanity check. Only starts up and checks for the initial block')
@@ -89,8 +89,7 @@ def main():
     # Begin our case statements
     if option == 'checkout':
         #if its CHECKEDOUT then checkout() will fail, aka it will have ot be CHECKEDIN to succeed
-        bc_obj.import_bc()
-        item_id = args.i
+        item_id = int(args.i)
         if DEBUG:
             print(type(item_id))
             print('action chosen was checkout')
@@ -99,17 +98,17 @@ def main():
         prev_block = bc_obj.search_by_id(item_id)
         if prev_block is None:
             #print and error that we did not find a block with that item_id?
-            pass
+            if DEBUG:
+                print('DID NOT FIND THE BLOCK WITH THAT ITEM_ID')
         else:
             #call get the current state of this item and check that the current state is CHECKEDIN
             current_state = bc_obj.get_curr_state_of_item(item_id)
+            if DEBUG:
+                print(current_state)
             if current_state == "CHECKEDIN":
-                new_block = bc_obj.checkout(item_id, prev_block.case_id)
-                #print details
-                print("Case: "+str(new_block.get_case_id()))
-                print("Checked in item: "+str(new_block.get_evidence_id()))
-                print("\tStatus: "+str(new_block.get_state()))
-                print("\tTime of action: "+str(new_block.get_timestamp()))
+
+                bc_obj.checkout(item_id, prev_block.case_id)
+
             elif current_state == "CHECKEDOUT":
                 print('Error: Cannot check out a checked out item. Must check it in first.')
         
@@ -117,25 +116,24 @@ def main():
 
     elif option == 'checkin':
         #if its DESTROYED, DISPOSED, RELEASED, or CHECKEDOUT then checkout() will fail, aka it will have ot be CHECKEDIN to succeed
-        bc_obj.import_bc()
-        item_id = args.i 
+        item_id = int(args.i)
         if DEBUG:
             print(type(item_id))
             print('action chosen was checkin')
         prev_block = bc_obj.search_by_id(item_id)
         if prev_block is None:
             #print and error that we did not find a block with that item_id?
-            pass
+            if DEBUG:
+                print('DID NOT FIND THE BLOCK WITH THAT ITEM_ID')
         else:
             #call get the current state of this item and check that the current state is CHECKEDIN
             current_state = bc_obj.get_curr_state_of_item(item_id)
+            if DEBUG:
+                print(current_state)
             if current_state == "CHECKEDOUT":
-                new_block = bc_obj.checkin(item_id, prev_block.case_id)
-                #print details
-                print("Case: "+str(new_block.get_case_id()))
-                print("Checked in item: "+str(new_block.get_evidence_id()))
-                print("\tStatus: "+str(new_block.get_state()))
-                print("\tTime of action: "+str(new_block.get_timestamp()))
+                
+                bc_obj.checkin(item_id, prev_block.case_id)
+
             elif current_state == "CHECKEDIN":
                 #print error if checked in item?
                 #print('Error: Cannot check in a checked in item. Must check it out first.')
@@ -144,18 +142,28 @@ def main():
     elif option == 'remove':
         if DEBUG:
             print('action chosen was remove')
-        item_id = args.i            # int
+        item_id = int(args.i[0])            # int
         reason = args.why           # str
         try:
             owner = args.o              # str
         except:
-            owner = False             
-        '''
-        requires:
-        
-        returns:
+            owner = False    
+        current_state = bc_obj.get_curr_state_of_item(item_id)
+        if DEBUG:
+            print(current_state)
+        prev_block = bc_obj.search_by_id(item_id)
+        if current_state is None:
+            #print and error that we did not find a block with that item_id?
+            pass
+        elif current_state == "CHECKEDIN":
+            bc_obj.remove(item_id, prev_block.case_id, reason, owner)
+        else:
+            if DEBUG:
+                print('Error: Cannot remove an item not checked in.')
             
-        '''
+
+
+
     elif option == 'verify':
         if DEBUG:
             print('action chosen was verify')
@@ -178,6 +186,17 @@ def main():
         #please remember that this is the only option where ITEM_ID can be represented as a list, rather than just an int
         case_id = args.c            # String, need to conv to UUID
         item_id = args.i            # int or List
+        ####
+        ####THIS makes sure that there are no items in the blockchain that have the same item id, 
+        ####if any of the given items do the program exits
+        ####
+        for item in item_id:
+            test = bc_obj.search_by_id(item)
+            if test!=None:
+                sys.exit(0)
+        ####
+        ####
+        ####
         bc_obj.new_evidence_add(case_id, item_id)
 
     elif option == 'log':
